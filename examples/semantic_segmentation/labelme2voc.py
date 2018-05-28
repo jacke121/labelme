@@ -12,24 +12,26 @@ import numpy as np
 import PIL.Image
 
 import labelme
-
+import sys
 
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('labels_file')
-    parser.add_argument('in_dir')
-    parser.add_argument('out_dir')
+
+
+    parser.add_argument('--labels_file',type=str,default="labels.txt")
+    parser.add_argument('--in_dir',type=str,default="in_dir")
+    parser.add_argument('--out_dir',type=str,default="out_dir")
     args = parser.parse_args()
 
-    if osp.exists(args.out_dir):
-        print('Output directory already exists:', args.out_dir)
-        quit(1)
-    os.makedirs(args.out_dir)
-    os.makedirs(osp.join(args.out_dir, 'JPEGImages'))
-    os.makedirs(osp.join(args.out_dir, 'SegmentationClass'))
-    os.makedirs(osp.join(args.out_dir, 'SegmentationClassVisualization'))
-    print('Creating dataset:', args.out_dir)
+    # if osp.exists(args.out_dir):
+    #     print('Output directory already exists:', args.out_dir)
+    #     quit(1)
+    # os.makedirs(args.out_dir)
+    # os.makedirs(osp.join(args.out_dir, 'JPEGImages'))
+    # os.makedirs(osp.join(args.out_dir, 'SegmentationClass'))
+    # os.makedirs(osp.join(args.out_dir, 'SegmentationClassVisualization'))
+    # print('Creating dataset:', args.out_dir)
 
     class_names = []
     class_name_to_id = {}
