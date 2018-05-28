@@ -37,6 +37,8 @@ class LabelFile(object):
                 with open(imagePath, 'rb') as f:
                     imageData = f.read()
             imagePath = data['imagePath']
+
+            print("points",data['shapes'][0]["points"])
             lineColor = data['lineColor']
             fillColor = data['fillColor']
             shapes = (

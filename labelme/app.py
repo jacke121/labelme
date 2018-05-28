@@ -720,8 +720,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
 
             filepath, tempfilename = os.path.split(self.filename)
             shotname, extension = os.path.splitext(tempfilename)
-            image_1.save(os.path.join(filepath,shotname+".png"), "PNG")
-            roi=None
+            image_1.save(os.path.join(filepath,shotname+"_1.png"), "PNG")
             return dict(label=str(s.label),
                         line_color=s.line_color.getRgb()
                         if s.line_color != self.lineColor else None,
