@@ -9,7 +9,6 @@ import webbrowser
 
 from PIL import Image, ImageDraw
 import numpy as np
-import cv2
 from qtpy import QT_VERSION
 from qtpy import QtCore
 from qtpy.QtCore import Qt
@@ -17,7 +16,8 @@ from qtpy import QtGui
 from qtpy import QtWidgets
 
 QT5 = QT_VERSION[0] == '5'  # NOQA
-
+import sys,os
+sys.path.append("..")
 from labelme import __appname__
 from labelme import __version__
 from labelme.canvas import Canvas
@@ -692,35 +692,6 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
     def saveLabels(self, filename):
         lf = LabelFile()
         def format_shape(s):
-
-            roi_t=[]
-            for point in s.points:
-                roi_t.append([int(point.x()), int(point.y())])
-            # for aa in range(5):
-            #     roi_t.append([aa*5, aa*5])
-            roi_t=np.asarray(roi_t)
-            roi_t=np.expand_dims(roi_t,axis=0)
-            image = cv2.imread(self.filename)
-
-            # b = np.array([[[100, 100], [250, 100], [300, 220], [100, 230]]], dtype=np.int32)
-
-            im = np.zeros(image.shape[:2], dtype="uint8")
-            cv2.polylines(im, roi_t, 1, 255)
-            cv2.fillPoly(im, roi_t, 255)
-
-            mask = im
-            masked = cv2.bitwise_and(image, image, mask=mask)
-            array = np.zeros((masked.shape[0], masked.shape[1], 4), np.uint8)
-            array[:, :, 0:3] = masked
-            array[:, :, 3] = 0
-            array[:, :, 3][np.where(array[:, :, 0] > 2)] = 255
-            array[:, :, 3][np.where(array[:, :, 1] > 2)] = 255
-            array[:, :, 3][np.where(array[:, :, 2] > 2)] = 255
-            image_1 = Image.fromarray(array)
-
-            filepath, tempfilename = os.path.split(self.filename)
-            shotname, extension = os.path.splitext(tempfilename)
-            image_1.save(os.path.join(filepath,shotname+"_1.png"), "PNG")
             return dict(label=str(s.label),
                         line_color=s.line_color.getRgb()
                         if s.line_color != self.lineColor else None,
