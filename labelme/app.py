@@ -38,21 +38,6 @@ from labelme.shape import Shape
 from labelme.toolBar import ToolBar
 from labelme.zoomWidget import ZoomWidget
 
-
-# FIXME
-# - [medium] Set max zoom value to something big enough for FitWidth/Window
-
-# TODO(unknown):
-# - [high] Add polygon movement with arrow keys
-# - [high] Deselect shape when clicking and already selected(?)
-# - [low,maybe] Open images with drag & drop.
-# - [low,maybe] Preview images on file dialogs.
-# - Zoom is too "steppy".
-
-
-# Utility functions and classes.
-
-
 class WindowMixin(object):
     def menu(self, title, actions=None):
         menu = self.menuBar().addMenu(title)
@@ -690,7 +675,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         self.loadShapes(s)
 
     def saveLabels(self, filename):
-        lf = LabelFile()
+        lf = LabelFile(False)
         def format_shape(s):
             return dict(label=str(s.label),
                         line_color=s.line_color.getRgb()
@@ -702,7 +687,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         try:
             imagePath = os.path.relpath(
                 self.imagePath, os.path.dirname(filename))
-            imageData = self.imageData if self._config['store_data'] else None
+            imageData =None# self.imageData if self._config['store_data'] else None
             lf.save(filename, shapes, imagePath, imageData,
                     self.lineColor.getRgb(), self.fillColor.getRgb(),
                     self.otherData)
@@ -831,7 +816,9 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         # assumes same name, but json extension
         self.status("Loading %s..." % os.path.basename(str(filename)))
 
-
+        input_img=True
+        if filename.endswith(",json"):
+            input_img=False
         base_path = os.path.dirname(filename) + "/../json"
         if os.path.exists(base_path):
             label_file = base_path + "/" + os.path.basename(os.path.splitext(filename)[0]) +  '.json'
@@ -839,15 +826,15 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
             label_file = os.path.splitext(filename)[0] + '.json'
         if os.path.exists(label_file):
             try:
-                self.labelFile = LabelFile(label_file)
+                self.labelFile = LabelFile(input_img,label_file)
                 # FIXME: PyQt4 installed via Anaconda fails to load JPEG
                 # and JSON encoded images.
                 # https://github.com/ContinuumIO/anaconda-issues/issues/131
-                if QtGui.QImage.fromData(self.labelFile.imageData).isNull():
-                    raise LabelFileError(
-                        'Failed loading image data from label file.\n'
-                        'Maybe this is a known issue of PyQt4 built on'
-                        ' Anaconda, and may be fixed by installing PyQt5.')
+                # if QtGui.QImage.fromData(self.labelFile.imageData).isNull():
+                #     raise LabelFileError(
+                #         'Failed loading image data from label file.\n'
+                #         'Maybe this is a known issue of PyQt4 built on'
+                #         ' Anaconda, and may be fixed by installing PyQt5.')
             except LabelFileError as e:
                 self.errorMessage(
                     'Error opening file',
@@ -856,9 +843,9 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
                     % (e, label_file))
                 self.status("Error reading %s" % label_file)
                 return False
-            self.imageData = self.labelFile.imageData
-            self.imagePath = os.path.join(os.path.dirname(label_file),
-                                          self.labelFile.imagePath)
+            # self.imageData = self.labelFile.imageData
+            self.imagePath = filename
+            self.imageData = read(self.imagePath, None)
             self.lineColor = QtGui.QColor(*self.labelFile.lineColor)
             self.fillColor = QtGui.QColor(*self.labelFile.fillColor)
             self.otherData = self.labelFile.otherData

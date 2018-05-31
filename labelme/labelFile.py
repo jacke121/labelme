@@ -5,40 +5,38 @@ import sys
 
 
 PY2 = sys.version_info[0] == 2
-
-
 class LabelFileError(Exception):
     pass
-
-
 class LabelFile(object):
-
     suffix = '.json'
-
-    def __init__(self, filename=None):
+    def __init__(self,input_img, filename=None):
         self.shapes = ()
         self.imagePath = None
         self.imageData = None
         if filename is not None:
-            self.load(filename)
+            self.load(filename,input_img)
         self.filename = filename
 
-    def load(self, filename):
-        keys = ['imageData', 'imagePath', 'lineColor', 'fillColor', 'shapes']
+    def load(self, filename,input_img):
+        # keys = ['imageData', 'imagePath', 'lineColor', 'fillColor', 'shapes']
+        keys = ['imagePath', 'lineColor', 'fillColor', 'shapes']
         try:
             with open(filename, 'rb' if PY2 else 'r') as f:
                 data = json.load(f)
-            if data['imageData'] is not None:
-                imageData = base64.b64decode(data['imageData'])
-            else:
+            # if data['imageData'] is not None:
+            #     imageData = base64.b64decode(data['imageData'])
+            # else:
                 # relative path from label file to relative path from cwd
+            if not input_img:
                 imagePath = os.path.join(os.path.dirname(filename),
                                          data['imagePath'])
-                with open(imagePath, 'rb') as f:
-                    imageData = f.read()
-            imagePath = data['imagePath']
 
-            print("points",data['shapes'][0]["points"])
+                if os.path.isfile(imagePath):
+                    with open(imagePath, 'rb') as f:
+                        imageData = f.read()
+                    imagePath = data['imagePath']
+                self.imagePath = imagePath
+                self.imageData = imageData
             lineColor = data['lineColor']
             fillColor = data['fillColor']
             shapes = (
@@ -55,8 +53,7 @@ class LabelFile(object):
 
         # Only replace data after everything is loaded.
         self.shapes = shapes
-        self.imagePath = imagePath
-        self.imageData = imageData
+
         self.lineColor = lineColor
         self.fillColor = fillColor
         self.filename = filename
@@ -64,8 +61,8 @@ class LabelFile(object):
 
     def save(self, filename, shapes, imagePath, imageData=None,
              lineColor=None, fillColor=None, otherData=None):
-        if imageData is not None:
-            imageData = base64.b64encode(imageData).decode('utf-8')
+        # if imageData is not None:
+        #     imageData = base64.b64encode(imageData).decode('utf-8')
         if otherData is None:
             otherData = {}
         data = dict(
@@ -73,7 +70,7 @@ class LabelFile(object):
             lineColor=lineColor,
             fillColor=fillColor,
             imagePath=imagePath,
-            imageData=imageData,
+            # imageData=imageData,
         )
         for key, value in otherData.items():
             data[key] = value
