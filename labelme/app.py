@@ -62,7 +62,35 @@ class EscapableQListWidget(QtWidgets.QListWidget):
         if event.key() == Qt.Key_Escape:
             self.clearSelection()
 
-
+class FileQListWidget(QtWidgets.QListWidget):
+    def keyPressEvent(self,event):
+        if event.key() == Qt.Key_Delete:
+            items = self.selectedItems()
+            if not items:
+                return
+            item = items[0]
+            currIndex = self.superwindow.imageList.index(str(item.text()))
+            if currIndex < len(self.superwindow.imageList):
+                filename = self.superwindow.imageList[currIndex]
+                if filename:
+                    item = self.takeItem(currIndex)
+                    item = None
+                    # self.removeItemWidget(item)
+                    # self.superwindow.imageList.remove(filename)
+                    os.remove(filename)
+                    base_path = os.path.dirname(filename) + "/../json"
+                    if os.path.exists(base_path):
+                        label_file = base_path + "/" + os.path.basename(os.path.splitext(filename)[0]) + '.json'
+                    else:
+                        label_file = os.path.splitext(filename)[0] + '.json'
+                    if os.path.exists(label_file):
+                        os.remove(label_file)
+                    # open next
+                    # currIndex +=1
+                    if currIndex < len(self.superwindow.imageList):
+                        filename = self.superwindow.imageList[currIndex]
+                        if filename:
+                            self.superwindow.loadFile(filename)
 class LabelQListWidget(QtWidgets.QListWidget):
 
     def __init__(self, *args, **kwargs):
@@ -133,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         )
 
         self.labelList = LabelQListWidget()
-        self.lastOpenDir = None
+
 
         self.labelList.itemActivated.connect(self.labelSelectionChanged)
         self.labelList.itemSelectionChanged.connect(self.labelSelectionChanged)
@@ -168,7 +196,9 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         self.dock.setObjectName('Labels')
         self.dock.setWidget(self.labelListContainer)
 
-        self.fileListWidget = QtWidgets.QListWidget()
+        self.fileListWidget = FileQListWidget()
+
+        self.fileListWidget.superwindow=self
         self.fileListWidget.itemSelectionChanged.connect(
             self.fileSelectionChanged)
         filelistLayout = QtWidgets.QVBoxLayout()
@@ -421,6 +451,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         position = self.settings.value('window/position', QtCore.QPoint(0, 0))
         self.resize(size)
         self.move(position)
+        self.lastOpenDir = self.settings.value('lastOpenDir', ".")
         # or simply:
         # self.restoreGeometry(settings['window/geometry']
         self.restoreState(
@@ -1006,14 +1037,13 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
     def saveFileDialog(self):
         caption = '%s - Choose File' % __appname__
         filters = 'Label files (*%s)' % LabelFile.suffix
-        dlg = QtWidgets.QFileDialog(self, caption, self.currentPath(), filters)
+        dlg = QtWidgets.QFileDialog(self, caption, self.currentPath()+"/../json", filters)
         dlg.setDefaultSuffix(LabelFile.suffix[1:])
         dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
         dlg.setOption(QtWidgets.QFileDialog.DontConfirmOverwrite, False)
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, False)
-        basename = os.path.splitext(self.filename)[0]
-        default_labelfile_name = os.path.join(
-            self.currentPath(), basename + LabelFile.suffix)
+        basename =os.path.basename(os.path.splitext(self.filename)[0])
+        default_labelfile_name = os.path.join(self.currentPath()+"/../json", basename + LabelFile.suffix)
         filename = dlg.getSaveFileName(
             self, 'Choose File', default_labelfile_name,
             'Label files (*%s)' % LabelFile.suffix)
@@ -1143,6 +1173,8 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
             self, '%s - Open Directory' % __appname__, defaultOpenDirPath,
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))
+        if targetDirPath and os.path.exists(targetDirPath):
+            self.settings.setValue('lastOpenDir', targetDirPath)
         self.importDirImages(targetDirPath)
 
     @property
