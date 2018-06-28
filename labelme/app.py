@@ -64,7 +64,11 @@ class EscapableQListWidget(QtWidgets.QListWidget):
 
 class FileQListWidget(QtWidgets.QListWidget):
     def keyPressEvent(self,event):
-        if event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key_Up:
+            self.superwindow.openPrevImg()
+        elif event.key() == Qt.Key_Down:
+            self.superwindow.openNextImg()
+        elif event.key() == Qt.Key_Delete:
             items = self.selectedItems()
             if not items:
                 return
@@ -73,10 +77,9 @@ class FileQListWidget(QtWidgets.QListWidget):
             if currIndex < len(self.superwindow.imageList):
                 filename = self.superwindow.imageList[currIndex]
                 if filename:
-                    item = self.takeItem(currIndex)
-                    item = None
-                    # self.removeItemWidget(item)
-                    # self.superwindow.imageList.remove(filename)
+                    # item =
+                    # item = None
+                    self.removeItemWidget(self.takeItem(currIndex))
                     os.remove(filename)
                     base_path = os.path.dirname(filename) + "/../json"
                     if os.path.exists(base_path):
@@ -87,10 +90,10 @@ class FileQListWidget(QtWidgets.QListWidget):
                         os.remove(label_file)
                     # open next
                     # currIndex +=1
-                    if currIndex < len(self.superwindow.imageList):
-                        filename = self.superwindow.imageList[currIndex]
-                        if filename:
-                            self.superwindow.loadFile(filename)
+                    # if currIndex < len(self.superwindow.imageList):
+                    #     filename = self.superwindow.imageList[currIndex]
+                    #     if filename:
+                    #         self.superwindow.loadFile(filename)
 class LabelQListWidget(QtWidgets.QListWidget):
 
     def __init__(self, *args, **kwargs):
@@ -195,9 +198,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         self.dock = QtWidgets.QDockWidget('Polygon Labels', self)
         self.dock.setObjectName('Labels')
         self.dock.setWidget(self.labelListContainer)
-
         self.fileListWidget = FileQListWidget()
-
         self.fileListWidget.superwindow=self
         self.fileListWidget.itemSelectionChanged.connect(
             self.fileSelectionChanged)
@@ -642,7 +643,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         if not items:
             return
         item = items[0]
-
+        print("fileSelectionChanged")
         if not self.mayContinue():
             return
 
