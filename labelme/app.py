@@ -537,7 +537,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         self.imageData = None
         self.labelFile = None
         self.otherData = None
-        self.canvas.resetState()
+        # self.canvas.resetState()
 
     def currentItem(self):
         items = self.labelList.selectedItems()
@@ -643,7 +643,6 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         if not items:
             return
         item = items[0]
-        print("fileSelectionChanged")
         if not self.mayContinue():
             return
 
@@ -891,6 +890,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
             self.labelFile = None
         image = QtGui.QImage.fromData(self.imageData)
         if image.isNull():
+            self.canvas.resetState()
             formats = ['*.{}'.format(fmt.data().decode())
                        for fmt in QtGui.QImageReader.supportedImageFormats()]
             self.errorMessage(
